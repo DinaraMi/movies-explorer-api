@@ -26,23 +26,31 @@ module.exports.getUserInfo = (req, res, next) => {
 module.exports.updateUserInfo = (req, res, next) => {
   const { email, name } = req.body;
   const userId = req.user._id;
-  User.findByIdAndUpdate(
-    userId,
-    { email, name },
-    { new: true, runValidators: true }
-  )
-    .then((user) => {
-      if (!user) {
-        throw new NotFoundError('Пользователь с таким id не найден');
+  User.findOne({ email })
+    .then((existingUser) => {
+      if (existingUser && existingUser._id != userId) {
+        throw new ConflictError('Пользователь с таким email уже существует');
+      } else {
+        User.findByIdAndUpdate(
+          userId,
+          { email, name },
+          { new: true, runValidators: true }
+        )
+          .then((user) => {
+            if (!user) {
+              throw new NotFoundError('Пользователь с таким id не найден');
+            }
+            res.status(Ok).send({ email: user.email, name: user.name });
+          })
+          .catch((error) => {
+            if (error.name === 'ValidationError') {
+              return next(new ValidationError(`Некорректные данные: ${error.message}`));
+            }
+            return next(error);
+          });
       }
-      res.status(Ok).send({ email: user.email, name: user.name });
     })
-    .catch((error) => {
-      if (error.name === 'ValidationError') {
-        return next(new ValidationError(`Некорректные данные: ${error.message}`));
-      }
-      return next(error);
-    });
+    .catch(next);
 };
 
 module.exports.signup = (req, res, next) => {
