@@ -24,7 +24,7 @@ app.use(helmet());
 
 const limiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 300,
+  max: 500,
 });
 app.use(limiter);
 
