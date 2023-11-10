@@ -3,6 +3,8 @@ const validator = require('validator');
 const bcrypt = require('bcryptjs');
 const UnauthorizedError = require('../errors/UnauthorizedError');
 
+const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$/;
+
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -12,7 +14,7 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     validate: {
-      validator: (email) => validator.isEmail(email),
+      validator: (email) => emailRegex.test(email),
       message: 'Некорректный email',
     },
     required: true,
